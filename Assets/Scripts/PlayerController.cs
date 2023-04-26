@@ -12,7 +12,9 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField] private float speed;
     [SerializeField] private float sizeBrick=0.3f;
-
+    private enum Direct { None, Forward, Back, Right, Left}
+    private Direct direct;
+    private Vector3 moveTarget;
 
     private bool isMoving = false;
 
@@ -27,6 +29,7 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        direct = Direct.None;
         rb = GetComponent<Rigidbody>();
     }
 
@@ -37,78 +40,92 @@ public class PlayerController : MonoBehaviour
         {
             return;
         }
-        RaycastHit hit;
+        
         if (Input.GetKeyDown(KeyCode.LeftArrow)||MobileInput.Instance.swipeLeft)
         {
-            if (Physics.Raycast(PrevDash.transform.position, Vector3.left, out hit, LayerMask.GetMask("brickLayer")) && hit.collider.tag == "Dashpickup")
-            {
-                Debug.Log("position Hit: " + hit.collider.tag);
-                isMoving = true;
-               // rb.velocity = Vector3.left * speed;
-                rb.transform.position = hit.transform.position;
-                //transform.position = Vector3.MoveTowards(transform.position, hit.collider.transform.position, 0.01f);
-            }
-            else {
-                isMoving = false;
-                rb.velocity = Vector3.zero;
-            }
+            isMoving = true;
+            direct = Direct.Left;
+            
         }
         else if (Input.GetKeyDown(KeyCode.RightArrow) || MobileInput.Instance.swipeRight)
         {
-            
-            
-            
-            if (Physics.Raycast(PrevDash.transform.position, Vector3.right, out hit, LayerMask.GetMask("brickLayer")) && hit.collider.tag == "Dashpickup")
-            {
-                Debug.Log("position Hit: " + hit.collider.tag);
-                isMoving = true;
-                rb.transform.position = hit.transform.position;
-                //rb.velocity = Vector3.MoveTowards(transform.position, hit.collider.transform.position, 0.01f);
-            }
-            else
-            {
-                isMoving = false;
-                rb.velocity = Vector3.zero;
-            }
+
+            isMoving = true;
+            direct = Direct.Right;
         }
-         else if (Input.GetKeyDown(KeyCode.UpArrow) || MobileInput.Instance.swipeUp)
+        else if (Input.GetKeyDown(KeyCode.UpArrow) || MobileInput.Instance.swipeUp)
         {
-         
-            
-          
-            if (Physics.Raycast(PrevDash.transform.position, Vector3.forward, out hit, LayerMask.GetMask("brickLayer")) && hit.collider.tag == "Dashpickup")
-            {
-                Debug.Log("position Hit: " + hit.collider.tag);
-                transform.position = hit.collider.transform.position;
-                isMoving = true;
-                //rb.transform.position = hit.transform.position;
-                rb.velocity =  Vector3.MoveTowards(transform.position, hit.collider.transform.position, 0.01f);
-            }
-            else
-            {
-                isMoving = false;
-                rb.velocity = Vector3.zero;
-            }
+
+            isMoving = true;
+            direct = Direct.Forward;
         }
         else if (Input.GetKeyDown(KeyCode.DownArrow) || MobileInput.Instance.swipeDown)
         {
+
             isMoving = true;
-          
-            if (Physics.Raycast(PrevDash.transform.position, -Vector3.forward, out hit, LayerMask.GetMask("brickLayer")) && hit.collider.tag == "Dashpickup")
+            direct = Direct.Back;
+
+        }
+        if (isMoving && direct==Direct.Left)
+        {
+            RaycastHit hit;
+            LayerMask brickLayer = LayerMask.GetMask("Line");
+            if (Physics.Raycast(transform.position, Vector3.left, out hit, 1f, brickLayer))
             {
-                Debug.Log("position Hit: " + hit.collider.tag);
-                isMoving = true;
-                rb.transform.position = hit.transform.position;
-                //rb.velocity = Vector3.MoveTowards(transform.position, hit.collider.transform.position, 0.01f);
+                moveTarget = hit.collider.transform.position;
+                moveTarget.y = rb.transform.position.y;
+                rb.transform.position = Vector3.MoveTowards(rb.transform.position, moveTarget, speed * Time.deltaTime);
+            }
+            else 
+            {
+                isMoving = false;
+            }
+        }
+        if (isMoving && direct == Direct.Right)
+        {
+            RaycastHit hit;
+            LayerMask brickLayer = LayerMask.GetMask("Line");
+            if (Physics.Raycast(transform.position, Vector3.right, out hit, 1f, brickLayer))
+            {
+                moveTarget = hit.collider.transform.position;
+                moveTarget.y = rb.transform.position.y;
+                rb.transform.position = Vector3.MoveTowards(rb.transform.position, moveTarget, speed * Time.deltaTime);
             }
             else
             {
                 isMoving = false;
-                rb.velocity = Vector3.zero;
             }
         }
-      
-        //Debug.Log("gameobj name:  " + gameObject.name);
+        if (isMoving && direct == Direct.Forward)
+        {
+            RaycastHit hit;
+            LayerMask brickLayer = LayerMask.GetMask("Line");
+            if (Physics.Raycast(transform.position, Vector3.forward, out hit, 1f, brickLayer))
+            {
+                moveTarget = hit.collider.transform.position;
+                moveTarget.y = rb.transform.position.y;
+                rb.transform.position = Vector3.MoveTowards(rb.transform.position, moveTarget, speed * Time.deltaTime);
+            }
+            else
+            {
+                isMoving = false;
+            }
+        }
+        if (isMoving && direct == Direct.Back)
+        {
+            RaycastHit hit;
+            LayerMask brickLayer = LayerMask.GetMask("Line");
+            if (Physics.Raycast(transform.position, Vector3.back, out hit, 10f, brickLayer) )
+            {
+                moveTarget = hit.collider.transform.position;
+                moveTarget.y = rb.transform.position.y;
+                rb.transform.position = Vector3.MoveTowards(rb.transform.position, moveTarget, speed * Time.deltaTime);
+            }
+            else
+            {
+                isMoving = false;
+            }
+        }
     }
     public void PickDash(GameObject dashObj)
     {
@@ -117,6 +134,7 @@ public class PlayerController : MonoBehaviour
         dashObj.transform.SetParent(DashParent.transform);
         // 0.3f la do cao vien gach 
         dashObj.transform.localPosition = new Vector3(PrevDash.transform.localPosition.x, PrevDash.transform.localPosition.y - sizeBrick, PrevDash.transform.localPosition.z);
+
         //tang chieu cao player them 0.3f 
         transform.localPosition = new Vector3(transform.position.x, transform.position.y + sizeBrick, transform.position.z);
 
@@ -124,8 +142,6 @@ public class PlayerController : MonoBehaviour
         //dat Doi tuong moi
         PrevDash = dashObj;
         PrevDash.GetComponent<BoxCollider>().isTrigger = false;
-        if (!isMoving) {
-            transform.localPosition = new Vector3(pos.x, transform.position.y + sizeBrick, pos.z);
-        }
+       
     }
 }

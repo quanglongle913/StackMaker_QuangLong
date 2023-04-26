@@ -14,15 +14,12 @@ public class Stack : MonoBehaviour
            
             other.gameObject.AddComponent<Rigidbody>();
             other.gameObject.GetComponent<Rigidbody>().useGravity = false;
-           //other.gameObject.GetComponent<Rigidbody>().isKinematic = true;
             other.gameObject.GetComponent<Rigidbody>().isKinematic = true;
             other.gameObject.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ| RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotationY;
-           
+         
             //add stack script vao doi tuong moi
             other.gameObject.AddComponent<Stack>();
-
-            //gameObject.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeRotation | RigidbodyConstraints.FreezePosition;
-            //gameObject.GetComponent<Rigidbody>().isKinematic = true;
+      
             Destroy(this);// xoa bo stack o doi tuong cu~
         }
     }
