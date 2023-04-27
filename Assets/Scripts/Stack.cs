@@ -4,22 +4,32 @@ using UnityEngine;
 
 public class Stack : MonoBehaviour
 {
+    [System.Obsolete]
     public void OnTriggerEnter(Collider other)
     {
         if(other.tag=="Dashpickup")
         {
-            Debug.Log("va cham");
+            //Debug.Log("va cham");
             other.gameObject.tag = "normal";
-            PlayerController.instance.PickDash(other.gameObject);
-            //other.gameObject.AddComponent<Rigidbody>();
-            //other.gameObject.GetComponent<Rigidbody>().useGravity = false;
-            //other.gameObject.GetComponent<Rigidbody>().isKinematic = true;
-            //other.gameObject.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ| RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotationY;
-         
-            //add stack script vao doi tuong moi
-            //other.gameObject.AddComponent<Stack>();
-      
-            //Destroy(this);// xoa bo stack o doi tuong cu~
+            PlayerController.instance.AddBrick(other.gameObject);
+            
+        }
+        if (other.tag == "UnBrickBlock")
+        {
+           
+            //Debug.Log("va cham UnBrickBlock");
+            other.gameObject.tag = "normal";
+            PlayerController.instance.RemoveBrick(other.gameObject);    
+        }
+        if (other.tag == "CheckPoint")
+        {
+            //Debug.Log("va cham UnBrickBlock");
+            //other.gameObject.tag = "normal";
+            PlayerController.instance.ClearBrick();
+        }
+        if (other.tag == "WinBrickBlock")
+        {
+            other.gameObject.SetActive(false);
         }
     }
 }

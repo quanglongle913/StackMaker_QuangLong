@@ -8,6 +8,11 @@ TagManager:
   - normal
   - wall
   - Line
+  - UnBrickBlock
+  - CheckPoint
+  - box
+  - boxOpen
+  - WinBrickBlock
   layers:
   - Default
   - TransparentFX

@@ -9,6 +9,7 @@ public class PlayerController : MonoBehaviour
     public static PlayerController instance;
     [SerializeField] private Rigidbody rb;
 
+    [SerializeField] private GameObject People;
     [SerializeField] private GameObject DashParent;
     [SerializeField] private GameObject PrevDash;
 
@@ -26,7 +27,10 @@ public class PlayerController : MonoBehaviour
     private Direct direct;
     private Vector3 moveTarget;
 
+    private bool isWin = false;
     private bool isMoving = false;
+    private int countBrick;
+
 
     private void Awake()
     {
@@ -48,10 +52,11 @@ public class PlayerController : MonoBehaviour
             swipeDetector.onSwipeUp += SwipeDetector_OnSwipUp;
             swipeDetector.onSwipeDown += SwipeDetector_OnSwipDown;
         }
+        countBrick = 0;
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
         if (PrevDash == null)
         {
@@ -61,11 +66,11 @@ public class PlayerController : MonoBehaviour
         {
             RaycastHit hit;
             LayerMask brickLayer = LayerMask.GetMask("Line");
-            if (Physics.Raycast(transform.position, Vector3.left, out hit, 1f, brickLayer))
+            if (Physics.Raycast(PrevDash.transform.position, Vector3.left, out hit, 1f, brickLayer))
             {
                 moveTarget = hit.collider.transform.position;
                 moveTarget.y = rb.transform.position.y;
-                rb.transform.position = Vector3.MoveTowards(rb.transform.position, moveTarget, speed * Time.deltaTime);
+                rb.transform.position = Vector3.MoveTowards(rb.transform.position, moveTarget, speed * Time.fixedDeltaTime);
             }
             else
             {
@@ -76,11 +81,11 @@ public class PlayerController : MonoBehaviour
         {
             RaycastHit hit;
             LayerMask brickLayer = LayerMask.GetMask("Line");
-            if (Physics.Raycast(transform.position, Vector3.right, out hit, 1f, brickLayer))
+            if (Physics.Raycast(PrevDash.transform.position, Vector3.right, out hit, 1f, brickLayer))
             {
                 moveTarget = hit.collider.transform.position;
                 moveTarget.y = rb.transform.position.y;
-                rb.transform.position = Vector3.MoveTowards(rb.transform.position, moveTarget, speed * Time.deltaTime);
+                rb.transform.position = Vector3.MoveTowards(rb.transform.position, moveTarget, speed * Time.fixedDeltaTime);
             }
             else
             {
@@ -91,11 +96,11 @@ public class PlayerController : MonoBehaviour
         {
             RaycastHit hit;
             LayerMask brickLayer = LayerMask.GetMask("Line");
-            if (Physics.Raycast(transform.position, Vector3.forward, out hit, 1f, brickLayer))
+            if (Physics.Raycast(PrevDash.transform.position, Vector3.forward, out hit, 1f, brickLayer))
             {
                 moveTarget = hit.collider.transform.position;
                 moveTarget.y = rb.transform.position.y;
-                rb.transform.position = Vector3.MoveTowards(rb.transform.position, moveTarget, speed * Time.deltaTime);
+                rb.transform.position = Vector3.MoveTowards(rb.transform.position, moveTarget, speed * Time.fixedDeltaTime);
             }
             else
             {
@@ -106,11 +111,11 @@ public class PlayerController : MonoBehaviour
         {
             RaycastHit hit;
             LayerMask brickLayer = LayerMask.GetMask("Line");
-            if (Physics.Raycast(transform.position, Vector3.back, out hit, 10f, brickLayer))
+            if (Physics.Raycast(PrevDash.transform.position, Vector3.back, out hit, 1f, brickLayer))
             {
                 moveTarget = hit.collider.transform.position;
                 moveTarget.y = rb.transform.position.y;
-                rb.transform.position = Vector3.MoveTowards(rb.transform.position, moveTarget, speed * Time.deltaTime);
+                rb.transform.position = Vector3.MoveTowards(rb.transform.position, moveTarget, speed * Time.fixedDeltaTime);
             }
             else
             {
@@ -125,7 +130,6 @@ public class PlayerController : MonoBehaviour
             isMoving = true;
             direct = Direct.Down;
         }
-        //Debug.Log("Down");
     }
 
     private void SwipeDetector_OnSwipUp()
@@ -135,8 +139,6 @@ public class PlayerController : MonoBehaviour
             isMoving = true;
             direct = Direct.Up;
         }
-        //Debug.Log("UP");
-
     }
 
     private void SwipeDetector_OnSwipRight()
@@ -146,7 +148,6 @@ public class PlayerController : MonoBehaviour
             isMoving = true;
             direct = Direct.Right;
         }
-        //Debug.Log("Right");
     }
 
     private void SwipeDetector_OnSwipLeft()
@@ -156,24 +157,54 @@ public class PlayerController : MonoBehaviour
             isMoving = true;
             direct = Direct.Left;
         }
-      
-        //Debug.Log("Left");
     }
-    public void PickDash(GameObject dashObj)
+    public void AddBrick(GameObject dashObj)
     {
-        Vector3 pos = dashObj.transform.position;
-        //Di chuyen vien gach ve vi tri player va xep o duoi cung
+        countBrick++;
+
+        //Di chuyen vien gach ve vi tri DashParent
         dashObj.transform.SetParent(DashParent.transform);
         // 0.3f la do cao vien gach 
-        dashObj.transform.localPosition = new Vector3(PrevDash.transform.localPosition.x, PrevDash.transform.localPosition.y + sizeBrick, PrevDash.transform.localPosition.z);
-
+        dashObj.transform.localPosition = new Vector3(PrevDash.transform.localPosition.x, PrevDash.transform.localPosition.y + sizeBrick * countBrick, PrevDash.transform.localPosition.z);
+       
         //tang chieu cao player them 0.3f 
-        //transform.localPosition = new Vector3(transform.position.x, transform.position.y + sizeBrick, transform.position.z);
-
-        //transform.localPosition = new Vector3(pos.x, transform.position.y + sizeBrick, pos.z);
-        //dat Doi tuong moi
-        //PrevDash = dashObj;
-        //PrevDash.GetComponent<BoxCollider>().isTrigger = false;
+        People.transform.localPosition = new Vector3(People.transform.localPosition.x, People.transform.localPosition.y + sizeBrick, People.transform.localPosition.z);
 
     }
+
+    [Obsolete]
+    public void RemoveBrick(GameObject dashObj)
+    {
+        if (countBrick > 0) 
+        {
+            countBrick--;
+            //Debug.Log("List Brick Size:" + DashParent.transform.GetChild(countBrick).gameObject.CompareTag("normal"));
+            if (DashParent.transform.GetChild(countBrick + 1).gameObject.CompareTag("normal"))
+            {
+                //Debug.Log("List Brick Size:"+ DashParent.transform.GetChild(countBrick+1).gameObject.name +"POS: "+DashParent.transform.GetChild(countBrick+1).gameObject.transform.localPosition);
+                DestroyObject(DashParent.transform.GetChild(countBrick + 1).gameObject);
+            }
+            dashObj.SetActive(false);
+            People.transform.localPosition = new Vector3(People.transform.localPosition.x, People.transform.localPosition.y - sizeBrick, People.transform.localPosition.z);
+        }
+        
+    }
+
+    [Obsolete]
+    public void ClearBrick()
+    {
+        if (countBrick > 0)
+        {
+            for (int i = 1; i < countBrick+1; i++)
+            {
+                if (DashParent.transform.GetChild(i).gameObject.CompareTag("normal"))
+                {
+                    DestroyObject(DashParent.transform.GetChild(i).gameObject);
+                }
+                People.transform.localPosition = new Vector3(People.transform.localPosition.x, People.transform.localPosition.y - sizeBrick, People.transform.localPosition.z);
+            }
+        }
+        
+    }
+
 }
