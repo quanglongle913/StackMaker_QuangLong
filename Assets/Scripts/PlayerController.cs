@@ -181,7 +181,7 @@ public class PlayerController : MonoBehaviour
             //Debug.Log("List Brick Size:" + DashParent.transform.GetChild(countBrick).gameObject.CompareTag("normal"));
             if (DashParent.transform.GetChild(countBrick + 1).gameObject.CompareTag("normal"))
             {
-                //Debug.Log("List Brick Size:"+ DashParent.transform.GetChild(countBrick+1).gameObject.name +"POS: "+DashParent.transform.GetChild(countBrick+1).gameObject.transform.localPosition);
+                
                 DestroyObject(DashParent.transform.GetChild(countBrick + 1).gameObject);
             }
             dashObj.SetActive(false);
