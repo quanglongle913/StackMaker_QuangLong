@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class PlayerController : MonoBehaviour
 {
@@ -12,7 +14,15 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField] private float speed;
     [SerializeField] private float sizeBrick=0.3f;
-    private enum Direct { None, Forward, Back, Right, Left}
+
+    [SerializeField] private SwipeDetector swipeDetector;
+
+    private enum Direct {
+        None,
+        Up,
+        Down,
+        Right,
+        Left}
     private Direct direct;
     private Vector3 moveTarget;
 
@@ -31,6 +41,13 @@ public class PlayerController : MonoBehaviour
     {
         direct = Direct.None;
         rb = GetComponent<Rigidbody>();
+        if (swipeDetector!=null)
+        {
+            swipeDetector.onSwipeLeft += SwipeDetector_OnSwipLeft;
+            swipeDetector.onSwipeRight += SwipeDetector_OnSwipRight;
+            swipeDetector.onSwipeUp += SwipeDetector_OnSwipUp;
+            swipeDetector.onSwipeDown += SwipeDetector_OnSwipDown;
+        }
     }
 
     // Update is called once per frame
@@ -40,33 +57,7 @@ public class PlayerController : MonoBehaviour
         {
             return;
         }
-        
-        if (Input.GetKeyDown(KeyCode.LeftArrow)||MobileInput.Instance.swipeLeft)
-        {
-            isMoving = true;
-            direct = Direct.Left;
-            
-        }
-        else if (Input.GetKeyDown(KeyCode.RightArrow) || MobileInput.Instance.swipeRight)
-        {
-
-            isMoving = true;
-            direct = Direct.Right;
-        }
-        else if (Input.GetKeyDown(KeyCode.UpArrow) || MobileInput.Instance.swipeUp)
-        {
-
-            isMoving = true;
-            direct = Direct.Forward;
-        }
-        else if (Input.GetKeyDown(KeyCode.DownArrow) || MobileInput.Instance.swipeDown)
-        {
-
-            isMoving = true;
-            direct = Direct.Back;
-
-        }
-        if (isMoving && direct==Direct.Left)
+        if (isMoving && direct == Direct.Left)
         {
             RaycastHit hit;
             LayerMask brickLayer = LayerMask.GetMask("Line");
@@ -76,7 +67,7 @@ public class PlayerController : MonoBehaviour
                 moveTarget.y = rb.transform.position.y;
                 rb.transform.position = Vector3.MoveTowards(rb.transform.position, moveTarget, speed * Time.deltaTime);
             }
-            else 
+            else
             {
                 isMoving = false;
             }
@@ -96,7 +87,7 @@ public class PlayerController : MonoBehaviour
                 isMoving = false;
             }
         }
-        if (isMoving && direct == Direct.Forward)
+        if (isMoving && direct == Direct.Up)
         {
             RaycastHit hit;
             LayerMask brickLayer = LayerMask.GetMask("Line");
@@ -111,11 +102,11 @@ public class PlayerController : MonoBehaviour
                 isMoving = false;
             }
         }
-        if (isMoving && direct == Direct.Back)
+        if (isMoving && direct == Direct.Down)
         {
             RaycastHit hit;
             LayerMask brickLayer = LayerMask.GetMask("Line");
-            if (Physics.Raycast(transform.position, Vector3.back, out hit, 10f, brickLayer) )
+            if (Physics.Raycast(transform.position, Vector3.back, out hit, 10f, brickLayer))
             {
                 moveTarget = hit.collider.transform.position;
                 moveTarget.y = rb.transform.position.y;
@@ -127,21 +118,62 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
+    private void SwipeDetector_OnSwipDown()
+    {
+        if (!isMoving)
+        {
+            isMoving = true;
+            direct = Direct.Down;
+        }
+        //Debug.Log("Down");
+    }
+
+    private void SwipeDetector_OnSwipUp()
+    {
+        if (!isMoving)
+        {
+            isMoving = true;
+            direct = Direct.Up;
+        }
+        //Debug.Log("UP");
+
+    }
+
+    private void SwipeDetector_OnSwipRight()
+    {
+        if (!isMoving)
+        {
+            isMoving = true;
+            direct = Direct.Right;
+        }
+        //Debug.Log("Right");
+    }
+
+    private void SwipeDetector_OnSwipLeft()
+    {
+        if (!isMoving)
+        {
+            isMoving = true;
+            direct = Direct.Left;
+        }
+      
+        //Debug.Log("Left");
+    }
     public void PickDash(GameObject dashObj)
     {
         Vector3 pos = dashObj.transform.position;
         //Di chuyen vien gach ve vi tri player va xep o duoi cung
         dashObj.transform.SetParent(DashParent.transform);
         // 0.3f la do cao vien gach 
-        dashObj.transform.localPosition = new Vector3(PrevDash.transform.localPosition.x, PrevDash.transform.localPosition.y - sizeBrick, PrevDash.transform.localPosition.z);
+        dashObj.transform.localPosition = new Vector3(PrevDash.transform.localPosition.x, PrevDash.transform.localPosition.y + sizeBrick, PrevDash.transform.localPosition.z);
 
         //tang chieu cao player them 0.3f 
-        transform.localPosition = new Vector3(transform.position.x, transform.position.y + sizeBrick, transform.position.z);
+        //transform.localPosition = new Vector3(transform.position.x, transform.position.y + sizeBrick, transform.position.z);
 
         //transform.localPosition = new Vector3(pos.x, transform.position.y + sizeBrick, pos.z);
         //dat Doi tuong moi
-        PrevDash = dashObj;
-        PrevDash.GetComponent<BoxCollider>().isTrigger = false;
-       
+        //PrevDash = dashObj;
+        //PrevDash.GetComponent<BoxCollider>().isTrigger = false;
+
     }
 }

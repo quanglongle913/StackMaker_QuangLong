@@ -8,19 +8,18 @@ public class Stack : MonoBehaviour
     {
         if(other.tag=="Dashpickup")
         {
-            //Debug.Log("va cham");
+            Debug.Log("va cham");
             other.gameObject.tag = "normal";
             PlayerController.instance.PickDash(other.gameObject);
-           
-            other.gameObject.AddComponent<Rigidbody>();
-            other.gameObject.GetComponent<Rigidbody>().useGravity = false;
-            other.gameObject.GetComponent<Rigidbody>().isKinematic = true;
-            other.gameObject.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ| RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotationY;
+            //other.gameObject.AddComponent<Rigidbody>();
+            //other.gameObject.GetComponent<Rigidbody>().useGravity = false;
+            //other.gameObject.GetComponent<Rigidbody>().isKinematic = true;
+            //other.gameObject.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ| RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotationY;
          
             //add stack script vao doi tuong moi
-            other.gameObject.AddComponent<Stack>();
+            //other.gameObject.AddComponent<Stack>();
       
-            Destroy(this);// xoa bo stack o doi tuong cu~
+            //Destroy(this);// xoa bo stack o doi tuong cu~
         }
     }
 }
