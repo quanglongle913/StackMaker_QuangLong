@@ -13,6 +13,7 @@ TagManager:
   - box
   - boxOpen
   - WinBrickBlock
+  - boxClose
   layers:
   - Default
   - TransparentFX
@@ -24,7 +25,7 @@ TagManager:
   - Player
   - brickLayer
   - Line
-  - 
+  - Box
   - 
   - 
   - 

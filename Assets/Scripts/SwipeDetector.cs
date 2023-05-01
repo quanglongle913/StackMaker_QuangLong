@@ -54,12 +54,19 @@ public class SwipeDetector : MonoBehaviour
                 DetectorSwipe();
 
             }
+            else if (Input.GetMouseButton(0))
+            {
+                fingerDownPos = (Vector2)Input.mousePosition;
+            }
+            swipeDelta = Vector2.zero;
         }
+
 #elif UNITY_ANDROID || UNITY_IOS
-        if (Input.touchCount > 0) 
+        //android & IOS
+        if (Input.touchCount > 0)
         {
             Touch curTouch = Input.GetTouch(0);
-            if (!isTouched && curTouch.phase == TouchPhase.Began) 
+            if (!isTouched && curTouch.phase == TouchPhase.Began)
             {
                 fingerDownPos = curTouch.deltaPosition;
                 isTouched = true;
@@ -71,10 +78,11 @@ public class SwipeDetector : MonoBehaviour
                 {
                     swipeDelta = (Vector2)curTouch.deltaPosition - fingerDownPos;
                     DetectorSwipe();
+                    //Debug.Log("mobile");
                 }
             }
 
-            if (isTouched && curTouch.phase == TouchPhase.Ended) 
+            if (isTouched && curTouch.phase == TouchPhase.Ended)
             {
                 fingerDownPos = Vector2.zero;
                 isTouched = false;
@@ -125,12 +133,6 @@ public class SwipeDetector : MonoBehaviour
                 fingerDownPos = Input.touches[0].position;
 
             }
-
-            else if (Input.GetMouseButton(0))
-            {
-                fingerDownPos = (Vector2)Input.mousePosition;
-            }
-            swipeDelta = Vector2.zero;
         }
     }
 } 

@@ -17,7 +17,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float sizeBrick=0.3f;
 
     [SerializeField] private SwipeDetector swipeDetector;
-
+    [SerializeField] private BrickManager brickManager;
+    private Vector3 StartPoint;
     private enum Direct {
         None,
         Up,
@@ -31,7 +32,12 @@ public class PlayerController : MonoBehaviour
     private bool isMoving = false;
     private int countBrick;
 
+    string level = "Level";
+    int inGameLevel;
+    string brick = "Brick";
+    int inGameBrick;
 
+    private Dictionary<GameObject, bool> current_obj_state;
     private void Awake()
     {
         if (instance == null)
@@ -43,16 +49,47 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        direct = Direct.None;
+        current_obj_state = new Dictionary<GameObject, bool>();
+        inGameLevel = 0;
+        StartPoint = transform.position;
         rb = GetComponent<Rigidbody>();
-        if (swipeDetector!=null)
+        if (swipeDetector != null)
         {
             swipeDetector.onSwipeLeft += SwipeDetector_OnSwipLeft;
             swipeDetector.onSwipeRight += SwipeDetector_OnSwipRight;
             swipeDetector.onSwipeUp += SwipeDetector_OnSwipUp;
             swipeDetector.onSwipeDown += SwipeDetector_OnSwipDown;
         }
+        if (brickManager != null)
+        {
+            brickManager.AddBrick += AddBrick;
+            brickManager.ClearBrick += ClearBrick;
+            brickManager.RemoveBrick += RemoveBrick;
+            brickManager.WinPos += WinPos;
+        }
+        OnInit();
+    }
+
+    public void OnInit()
+    {
+        if (current_obj_state.Count > 0) 
+        {
+            reset_obj_Value();
+            current_obj_state.Clear();
+        }
+        
+        inGameLevel = PlayerPrefs.GetInt(level, 0);
+        inGameBrick = PlayerPrefs.GetInt(brick, 0);
+        transform.position = new Vector3(StartPoint.x + (30 * inGameLevel) , StartPoint.y, StartPoint.z);
+
+        isWin = false;
+        isMoving = false;
+        direct = Direct.None;
         countBrick = 0;
+        UIManager.instance.SetBrick(inGameBrick);
+        UIManager.instance.SetLevel(inGameLevel+1);
+        UIManager.instance.isNextButton(isWin);
+        UIManager.instance.isReplayButton(isWin);
     }
 
     // Update is called once per frame
@@ -62,15 +99,18 @@ public class PlayerController : MonoBehaviour
         {
             return;
         }
+        if (!isWin) 
+        {
         if (isMoving && direct == Direct.Left)
         {
             RaycastHit hit;
             LayerMask brickLayer = LayerMask.GetMask("Line");
             if (Physics.Raycast(PrevDash.transform.position, Vector3.left, out hit, 1f, brickLayer))
             {
-                moveTarget = hit.collider.transform.position;
-                moveTarget.y = rb.transform.position.y;
-                rb.transform.position = Vector3.MoveTowards(rb.transform.position, moveTarget, speed * Time.fixedDeltaTime);
+                    moveTarget = hit.collider.transform.position;
+                    moveTarget.y = rb.transform.position.y;
+                    rb.transform.position = Vector3.MoveTowards(rb.transform.position, moveTarget, speed * Time.fixedDeltaTime);
+
             }
             else
             {
@@ -83,10 +123,10 @@ public class PlayerController : MonoBehaviour
             LayerMask brickLayer = LayerMask.GetMask("Line");
             if (Physics.Raycast(PrevDash.transform.position, Vector3.right, out hit, 1f, brickLayer))
             {
-                moveTarget = hit.collider.transform.position;
-                moveTarget.y = rb.transform.position.y;
-                rb.transform.position = Vector3.MoveTowards(rb.transform.position, moveTarget, speed * Time.fixedDeltaTime);
-            }
+                    moveTarget = hit.collider.transform.position;
+                    moveTarget.y = rb.transform.position.y;
+                    rb.transform.position = Vector3.MoveTowards(rb.transform.position, moveTarget, speed * Time.fixedDeltaTime);
+                }
             else
             {
                 isMoving = false;
@@ -98,10 +138,10 @@ public class PlayerController : MonoBehaviour
             LayerMask brickLayer = LayerMask.GetMask("Line");
             if (Physics.Raycast(PrevDash.transform.position, Vector3.forward, out hit, 1f, brickLayer))
             {
-                moveTarget = hit.collider.transform.position;
-                moveTarget.y = rb.transform.position.y;
-                rb.transform.position = Vector3.MoveTowards(rb.transform.position, moveTarget, speed * Time.fixedDeltaTime);
-            }
+                    moveTarget = hit.collider.transform.position;
+                    moveTarget.y = rb.transform.position.y;
+                    rb.transform.position = Vector3.MoveTowards(rb.transform.position, moveTarget, speed * Time.fixedDeltaTime);
+                }
             else
             {
                 isMoving = false;
@@ -113,14 +153,15 @@ public class PlayerController : MonoBehaviour
             LayerMask brickLayer = LayerMask.GetMask("Line");
             if (Physics.Raycast(PrevDash.transform.position, Vector3.back, out hit, 1f, brickLayer))
             {
-                moveTarget = hit.collider.transform.position;
-                moveTarget.y = rb.transform.position.y;
-                rb.transform.position = Vector3.MoveTowards(rb.transform.position, moveTarget, speed * Time.fixedDeltaTime);
-            }
+                    moveTarget = hit.collider.transform.position;
+                    moveTarget.y = rb.transform.position.y;
+                    rb.transform.position = Vector3.MoveTowards(rb.transform.position, moveTarget, speed * Time.fixedDeltaTime);
+                }
             else
             {
                 isMoving = false;
             }
+        }
         }
     }
     private void SwipeDetector_OnSwipDown()
@@ -158,14 +199,22 @@ public class PlayerController : MonoBehaviour
             direct = Direct.Left;
         }
     }
-    public void AddBrick(GameObject dashObj)
+    private void AddBrick(GameObject brickObj)
     {
+        //brickObj.gameObject.tag = "normal";
+        brickObj.gameObject.SetActive(false);
         countBrick++;
-
+        inGameBrick++;
+ 
+        current_obj_state.Add(brickObj, false);
+        UIManager.instance.SetBrick(inGameBrick);
+        GameObject clone_brick = Instantiate(brickObj);
+        clone_brick.gameObject.SetActive(true);
+        clone_brick.gameObject.tag = "normal";
         //Di chuyen vien gach ve vi tri DashParent
-        dashObj.transform.SetParent(DashParent.transform);
+        clone_brick.transform.SetParent(DashParent.transform);
         // 0.3f la do cao vien gach 
-        dashObj.transform.localPosition = new Vector3(PrevDash.transform.localPosition.x, PrevDash.transform.localPosition.y + sizeBrick * countBrick, PrevDash.transform.localPosition.z);
+        clone_brick.transform.localPosition = new Vector3(PrevDash.transform.localPosition.x, PrevDash.transform.localPosition.y + sizeBrick * countBrick, PrevDash.transform.localPosition.z);
        
         //tang chieu cao player them 0.3f 
         People.transform.localPosition = new Vector3(People.transform.localPosition.x, People.transform.localPosition.y + sizeBrick, People.transform.localPosition.z);
@@ -173,38 +222,90 @@ public class PlayerController : MonoBehaviour
     }
 
     [Obsolete]
-    public void RemoveBrick(GameObject dashObj)
+    private void RemoveBrick(GameObject brickObj)
     {
-        if (countBrick > 0) 
+        if (countBrick > 0 && brickObj.gameObject.transform.GetChild(0).gameObject.active)
         {
+            brickObj.gameObject.transform.GetChild(0).gameObject.SetActive(false);
+            brickObj.gameObject.transform.GetChild(1).gameObject.SetActive(true);
+
+            current_obj_state.Add(brickObj.gameObject.transform.GetChild(0).gameObject, false);
+            current_obj_state.Add(brickObj.gameObject.transform.GetChild(1).gameObject, true);
+
             countBrick--;
+            inGameBrick--;
+ 
+
+            UIManager.instance.SetBrick(inGameBrick);
             //Debug.Log("List Brick Size:" + DashParent.transform.GetChild(countBrick).gameObject.CompareTag("normal"));
             if (DashParent.transform.GetChild(countBrick + 1).gameObject.CompareTag("normal"))
             {
-                
                 DestroyObject(DashParent.transform.GetChild(countBrick + 1).gameObject);
             }
-            dashObj.SetActive(false);
             People.transform.localPosition = new Vector3(People.transform.localPosition.x, People.transform.localPosition.y - sizeBrick, People.transform.localPosition.z);
         }
-        
     }
 
     [Obsolete]
-    public void ClearBrick()
+    private void ClearBrick()
     {
-        if (countBrick > 0)
+  
+        if (DashParent.transform.childCount > 0)
         {
-            for (int i = 1; i < countBrick+1; i++)
+            for (int i = 0; i < DashParent.transform.childCount; i++)
             {
                 if (DashParent.transform.GetChild(i).gameObject.CompareTag("normal"))
                 {
                     DestroyObject(DashParent.transform.GetChild(i).gameObject);
+                    People.transform.localPosition = new Vector3(People.transform.localPosition.x, People.transform.localPosition.y - sizeBrick, People.transform.localPosition.z);
                 }
-                People.transform.localPosition = new Vector3(People.transform.localPosition.x, People.transform.localPosition.y - sizeBrick, People.transform.localPosition.z);
             }
+            countBrick=0;
+        }
+    }
+    private void WinPos(GameObject boxObj)
+    {
+        if (!isWin) 
+        {
+            //boxObj.gameObject.tag = "Untagged";
+            boxObj.gameObject.transform.GetChild(0).gameObject.SetActive(false);
+            boxObj.gameObject.transform.GetChild(1).gameObject.SetActive(true);
+            current_obj_state.Add(boxObj.gameObject.transform.GetChild(0).gameObject, false);
+            current_obj_state.Add(boxObj.gameObject.transform.GetChild(1).gameObject, true);
+            isWin = true;
+
+            PlayerPrefs.SetInt(brick, inGameBrick);
+            PlayerPrefs.Save();
+            UIManager.instance.isNextButton(isWin);
+            UIManager.instance.isReplayButton(isWin);
         }
         
     }
+    public void nextLevel() 
+    {
+        //Level = inGameLevel +1, check Level <5 -> level +++ else ko doi
+        if (inGameLevel < 4) 
+        {
+            inGameLevel++;
+            PlayerPrefs.SetInt(level, inGameLevel);
+            PlayerPrefs.Save();
+        }
 
+        OnInit();
+    }
+    public void replay()
+    {
+        PlayerPrefs.SetInt(level, inGameLevel);
+        PlayerPrefs.Save();
+        OnInit();
+    }
+    
+
+    public void reset_obj_Value()
+    {
+        foreach (KeyValuePair<GameObject, bool> allactobj in current_obj_state)
+        {
+            allactobj.Key.gameObject.SetActive(!allactobj.Value);
+        }
+    }
 }
