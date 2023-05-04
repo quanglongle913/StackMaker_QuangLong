@@ -37,7 +37,8 @@ public class PlayerController : MonoBehaviour
     string brick = "Brick";
     int inGameBrick;
 
-    private Dictionary<GameObject, bool> current_obj_state;
+    // private Dictionary<GameObject, bool> current_obj_state;
+    private List<Brick> brickList;
     private void Awake()
     {
         if (instance == null)
@@ -49,7 +50,8 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        current_obj_state = new Dictionary<GameObject, bool>();
+        //current_obj_state = new Dictionary<GameObject, bool>();
+        brickList = new List<Brick>();
         inGameLevel = 0;
         StartPoint = transform.position;
         rb = GetComponent<Rigidbody>();
@@ -72,10 +74,11 @@ public class PlayerController : MonoBehaviour
 
     public void OnInit()
     {
-        if (current_obj_state.Count > 0) 
+        if (brickList.Count > 0) 
         {
             reset_obj_Value();
-            current_obj_state.Clear();
+            //current_obj_state.Clear();
+            brickList.Clear();
         }
         
         inGameLevel = PlayerPrefs.GetInt(level, 0);
@@ -206,7 +209,8 @@ public class PlayerController : MonoBehaviour
         countBrick++;
         inGameBrick++;
  
-        current_obj_state.Add(brickObj, false);
+        //current_obj_state.Add(brickObj, false);
+        brickList.Add(new Brick(brickObj, false));
         UIManager.instance.SetBrick(inGameBrick);
         GameObject clone_brick = Instantiate(brickObj);
         clone_brick.gameObject.SetActive(true);
@@ -229,8 +233,11 @@ public class PlayerController : MonoBehaviour
             brickObj.gameObject.transform.GetChild(0).gameObject.SetActive(false);
             brickObj.gameObject.transform.GetChild(1).gameObject.SetActive(true);
 
-            current_obj_state.Add(brickObj.gameObject.transform.GetChild(0).gameObject, false);
-            current_obj_state.Add(brickObj.gameObject.transform.GetChild(1).gameObject, true);
+            //current_obj_state.Add(brickObj.gameObject.transform.GetChild(0).gameObject, false);
+            //current_obj_state.Add(brickObj.gameObject.transform.GetChild(1).gameObject, true);
+
+            brickList.Add(new Brick(brickObj.gameObject.transform.GetChild(0).gameObject, false));
+            brickList.Add(new Brick(brickObj.gameObject.transform.GetChild(1).gameObject, true));
 
             countBrick--;
             inGameBrick--;
@@ -270,8 +277,13 @@ public class PlayerController : MonoBehaviour
             //boxObj.gameObject.tag = "Untagged";
             boxObj.gameObject.transform.GetChild(0).gameObject.SetActive(false);
             boxObj.gameObject.transform.GetChild(1).gameObject.SetActive(true);
-            current_obj_state.Add(boxObj.gameObject.transform.GetChild(0).gameObject, false);
-            current_obj_state.Add(boxObj.gameObject.transform.GetChild(1).gameObject, true);
+
+            //current_obj_state.Add(boxObj.gameObject.transform.GetChild(0).gameObject, false);
+            //current_obj_state.Add(boxObj.gameObject.transform.GetChild(1).gameObject, true);
+
+            brickList.Add(new Brick(boxObj.gameObject.transform.GetChild(0).gameObject, false));
+            brickList.Add(new Brick(boxObj.gameObject.transform.GetChild(1).gameObject, true));
+
             isWin = true;
 
             PlayerPrefs.SetInt(brick, inGameBrick);
@@ -303,9 +315,13 @@ public class PlayerController : MonoBehaviour
 
     public void reset_obj_Value()
     {
-        foreach (KeyValuePair<GameObject, bool> allactobj in current_obj_state)
+        /*foreach (KeyValuePair<GameObject, bool> allactobj in current_obj_state)
         {
             allactobj.Key.gameObject.SetActive(!allactobj.Value);
+        }*/
+        for (int i=0; i< brickList.Count; i++)
+        {
+            brickList[i].brickObj.gameObject.SetActive(!brickList[i].isActive);
         }
     }
 }
