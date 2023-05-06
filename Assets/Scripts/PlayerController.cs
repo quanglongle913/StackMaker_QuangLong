@@ -104,67 +104,22 @@ public class PlayerController : MonoBehaviour
         }
         if (!isWin) 
         {
-        if (isMoving && direct == Direct.Left)
-        {
-            RaycastHit hit;
-            LayerMask brickLayer = LayerMask.GetMask("Line");
-            if (Physics.Raycast(PrevDash.transform.position, Vector3.left, out hit, 1f, brickLayer))
+            if (isMoving && direct == Direct.Left)
             {
-                    moveTarget = hit.collider.transform.position;
-                    moveTarget.y = rb.transform.position.y;
-                    rb.transform.position = Vector3.MoveTowards(rb.transform.position, moveTarget, speed * Time.fixedDeltaTime);
-
+                Moving(Vector3.left);
             }
-            else
+            if (isMoving && direct == Direct.Right)
             {
-                isMoving = false;
+                Moving(Vector3.right);
             }
-        }
-        if (isMoving && direct == Direct.Right)
-        {
-            RaycastHit hit;
-            LayerMask brickLayer = LayerMask.GetMask("Line");
-            if (Physics.Raycast(PrevDash.transform.position, Vector3.right, out hit, 1f, brickLayer))
+            if (isMoving && direct == Direct.Up)
             {
-                    moveTarget = hit.collider.transform.position;
-                    moveTarget.y = rb.transform.position.y;
-                    rb.transform.position = Vector3.MoveTowards(rb.transform.position, moveTarget, speed * Time.fixedDeltaTime);
-                }
-            else
-            {
-                isMoving = false;
+                Moving(Vector3.forward);
             }
-        }
-        if (isMoving && direct == Direct.Up)
-        {
-            RaycastHit hit;
-            LayerMask brickLayer = LayerMask.GetMask("Line");
-            if (Physics.Raycast(PrevDash.transform.position, Vector3.forward, out hit, 1f, brickLayer))
+            if (isMoving && direct == Direct.Down)
             {
-                    moveTarget = hit.collider.transform.position;
-                    moveTarget.y = rb.transform.position.y;
-                    rb.transform.position = Vector3.MoveTowards(rb.transform.position, moveTarget, speed * Time.fixedDeltaTime);
-                }
-            else
-            {
-                isMoving = false;
+                Moving(Vector3.back);
             }
-        }
-        if (isMoving && direct == Direct.Down)
-        {
-            RaycastHit hit;
-            LayerMask brickLayer = LayerMask.GetMask("Line");
-            if (Physics.Raycast(PrevDash.transform.position, Vector3.back, out hit, 1f, brickLayer))
-            {
-                    moveTarget = hit.collider.transform.position;
-                    moveTarget.y = rb.transform.position.y;
-                    rb.transform.position = Vector3.MoveTowards(rb.transform.position, moveTarget, speed * Time.fixedDeltaTime);
-                }
-            else
-            {
-                isMoving = false;
-            }
-        }
         }
     }
     private void SwipeDetector_OnSwipDown()
@@ -202,15 +157,31 @@ public class PlayerController : MonoBehaviour
             direct = Direct.Left;
         }
     }
+    private void Moving(Vector3 vector3)
+    {
+        RaycastHit hit;
+        LayerMask brickLayer = LayerMask.GetMask("Line");
+        if (Physics.Raycast(PrevDash.transform.position, vector3, out hit, 1f, brickLayer))
+        {
+            moveTarget = hit.collider.transform.position;
+            moveTarget.y = rb.transform.position.y;
+            rb.transform.position = Vector3.MoveTowards(rb.transform.position, moveTarget, speed * Time.fixedDeltaTime);
+        }
+        else
+        {
+            isMoving = false;
+        }
+    }
     private void AddBrick(GameObject brickObj)
     {
         //brickObj.gameObject.tag = "normal";
         brickObj.gameObject.SetActive(false);
         countBrick++;
         inGameBrick++;
- 
+
         //current_obj_state.Add(brickObj, false);
-        brickList.Add(new Brick(brickObj, false));
+        Brick item = new Brick(brickObj, false);
+        brickList.Add(item);
         UIManager.instance.SetBrick(inGameBrick);
         GameObject clone_brick = Instantiate(brickObj);
         clone_brick.gameObject.SetActive(true);
@@ -225,10 +196,10 @@ public class PlayerController : MonoBehaviour
 
     }
 
-    [Obsolete]
+
     private void RemoveBrick(GameObject brickObj)
     {
-        if (countBrick > 0 && brickObj.gameObject.transform.GetChild(0).gameObject.active)
+        if (countBrick > 0 && brickObj.gameObject.transform.GetChild(0).gameObject.activeSelf)
         {
             brickObj.gameObject.transform.GetChild(0).gameObject.SetActive(false);
             brickObj.gameObject.transform.GetChild(1).gameObject.SetActive(true);
@@ -236,8 +207,10 @@ public class PlayerController : MonoBehaviour
             //current_obj_state.Add(brickObj.gameObject.transform.GetChild(0).gameObject, false);
             //current_obj_state.Add(brickObj.gameObject.transform.GetChild(1).gameObject, true);
 
-            brickList.Add(new Brick(brickObj.gameObject.transform.GetChild(0).gameObject, false));
-            brickList.Add(new Brick(brickObj.gameObject.transform.GetChild(1).gameObject, true));
+            Brick item = new Brick(brickObj.gameObject.transform.GetChild(0).gameObject, false);
+            brickList.Add(item);
+            Brick item1 = new Brick(brickObj.gameObject.transform.GetChild(1).gameObject, true);
+            brickList.Add(item1);
 
             countBrick--;
             inGameBrick--;
@@ -247,13 +220,14 @@ public class PlayerController : MonoBehaviour
             //Debug.Log("List Brick Size:" + DashParent.transform.GetChild(countBrick).gameObject.CompareTag("normal"));
             if (DashParent.transform.GetChild(countBrick + 1).gameObject.CompareTag("normal"))
             {
-                DestroyObject(DashParent.transform.GetChild(countBrick + 1).gameObject);
+                //DestroyObject(DashParent.transform.GetChild(countBrick + 1).gameObject);
+                Destroy(DashParent.transform.GetChild(countBrick + 1).gameObject);
             }
             People.transform.localPosition = new Vector3(People.transform.localPosition.x, People.transform.localPosition.y - sizeBrick, People.transform.localPosition.z);
         }
     }
 
-    [Obsolete]
+
     private void ClearBrick()
     {
   
@@ -263,7 +237,8 @@ public class PlayerController : MonoBehaviour
             {
                 if (DashParent.transform.GetChild(i).gameObject.CompareTag("normal"))
                 {
-                    DestroyObject(DashParent.transform.GetChild(i).gameObject);
+                    //DestroyObject(DashParent.transform.GetChild(i).gameObject);
+                    Destroy(DashParent.transform.GetChild(i).gameObject);
                     People.transform.localPosition = new Vector3(People.transform.localPosition.x, People.transform.localPosition.y - sizeBrick, People.transform.localPosition.z);
                 }
             }
@@ -281,8 +256,10 @@ public class PlayerController : MonoBehaviour
             //current_obj_state.Add(boxObj.gameObject.transform.GetChild(0).gameObject, false);
             //current_obj_state.Add(boxObj.gameObject.transform.GetChild(1).gameObject, true);
 
-            brickList.Add(new Brick(boxObj.gameObject.transform.GetChild(0).gameObject, false));
-            brickList.Add(new Brick(boxObj.gameObject.transform.GetChild(1).gameObject, true));
+            Brick item = new Brick(boxObj.gameObject.transform.GetChild(0).gameObject, false);
+            brickList.Add(item);
+            Brick item1 = new Brick(boxObj.gameObject.transform.GetChild(1).gameObject, true);
+            brickList.Add(item1);
 
             isWin = true;
 
@@ -321,7 +298,7 @@ public class PlayerController : MonoBehaviour
         }*/
         for (int i=0; i< brickList.Count; i++)
         {
-            brickList[i].brickObj.gameObject.SetActive(!brickList[i].isActive);
+            brickList[i].GetbrickObj().gameObject.SetActive(!brickList[i].GetisActive());
         }
     }
 }
