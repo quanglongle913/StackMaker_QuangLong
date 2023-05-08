@@ -10,7 +10,7 @@ public class BrickManager : MonoBehaviour
     public UnityAction<GameObject> RemoveBrick;
     public UnityAction ClearBrick;
     public UnityAction<GameObject> WinPos;
-    [System.Obsolete]
+
     public void OnTriggerEnter(Collider other)
     {
         if(other.tag=="Dashpickup")
@@ -29,6 +29,7 @@ public class BrickManager : MonoBehaviour
         }
         if (other.tag == "box")
         {
+            Debug.Log("win");
             WinPos(other.gameObject);
         }
     }

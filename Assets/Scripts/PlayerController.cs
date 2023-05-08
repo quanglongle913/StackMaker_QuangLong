@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : GameMaganer
 {
     public static PlayerController instance;
     [SerializeField] private Rigidbody rb;
@@ -18,7 +18,11 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField] private SwipeDetector swipeDetector;
     [SerializeField] private BrickManager brickManager;
-    private Vector3 StartPoint;
+    //[SerializeField] private ParticleSystem particleLihua;
+    //[SerializeField] private ParticleSystem particleLihua1;
+
+
+    //private Vector3 StartPoint;
     private enum Direct {
         None,
         Up,
@@ -32,13 +36,6 @@ public class PlayerController : MonoBehaviour
     private bool isMoving = false;
     private int countBrick;
 
-    string level = "Level";
-    int inGameLevel;
-    string brick = "Brick";
-    int inGameBrick;
-
-    // private Dictionary<GameObject, bool> current_obj_state;
-    private List<Brick> brickList;
     private void Awake()
     {
         if (instance == null)
@@ -50,10 +47,8 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        //current_obj_state = new Dictionary<GameObject, bool>();
-        brickList = new List<Brick>();
         inGameLevel = 0;
-        StartPoint = transform.position;
+        
         rb = GetComponent<Rigidbody>();
         if (swipeDetector != null)
         {
@@ -72,23 +67,18 @@ public class PlayerController : MonoBehaviour
         OnInit();
     }
 
-    public void OnInit()
+    public override void OnInit()
     {
-        if (brickList.Count > 0) 
-        {
-            reset_obj_Value();
-            //current_obj_state.Clear();
-            brickList.Clear();
-        }
+        base.OnInit();
         
         inGameLevel = PlayerPrefs.GetInt(level, 0);
         inGameBrick = PlayerPrefs.GetInt(brick, 0);
-        transform.position = new Vector3(StartPoint.x + (30 * inGameLevel) , StartPoint.y, StartPoint.z);
 
         isWin = false;
         isMoving = false;
         direct = Direct.None;
         countBrick = 0;
+
         UIManager.instance.SetBrick(inGameBrick);
         UIManager.instance.SetLevel(inGameLevel+1);
         UIManager.instance.isNextButton(isWin);
@@ -179,9 +169,6 @@ public class PlayerController : MonoBehaviour
         countBrick++;
         inGameBrick++;
 
-        //current_obj_state.Add(brickObj, false);
-        Brick item = new Brick(brickObj, false);
-        brickList.Add(item);
         UIManager.instance.SetBrick(inGameBrick);
         GameObject clone_brick = Instantiate(brickObj);
         clone_brick.gameObject.SetActive(true);
@@ -203,14 +190,6 @@ public class PlayerController : MonoBehaviour
         {
             brickObj.gameObject.transform.GetChild(0).gameObject.SetActive(false);
             brickObj.gameObject.transform.GetChild(1).gameObject.SetActive(true);
-
-            //current_obj_state.Add(brickObj.gameObject.transform.GetChild(0).gameObject, false);
-            //current_obj_state.Add(brickObj.gameObject.transform.GetChild(1).gameObject, true);
-
-            Brick item = new Brick(brickObj.gameObject.transform.GetChild(0).gameObject, false);
-            brickList.Add(item);
-            Brick item1 = new Brick(brickObj.gameObject.transform.GetChild(1).gameObject, true);
-            brickList.Add(item1);
 
             countBrick--;
             inGameBrick--;
@@ -249,24 +228,21 @@ public class PlayerController : MonoBehaviour
     {
         if (!isWin) 
         {
+            Debug.Log("WinPos...");
             //boxObj.gameObject.tag = "Untagged";
             boxObj.gameObject.transform.GetChild(0).gameObject.SetActive(false);
             boxObj.gameObject.transform.GetChild(1).gameObject.SetActive(true);
 
-            //current_obj_state.Add(boxObj.gameObject.transform.GetChild(0).gameObject, false);
-            //current_obj_state.Add(boxObj.gameObject.transform.GetChild(1).gameObject, true);
-
-            Brick item = new Brick(boxObj.gameObject.transform.GetChild(0).gameObject, false);
-            brickList.Add(item);
-            Brick item1 = new Brick(boxObj.gameObject.transform.GetChild(1).gameObject, true);
-            brickList.Add(item1);
-
             isWin = true;
+           
 
             PlayerPrefs.SetInt(brick, inGameBrick);
             PlayerPrefs.Save();
+
             UIManager.instance.isNextButton(isWin);
             UIManager.instance.isReplayButton(isWin);
+            //particleLihua.Play();
+            //particleLihua1.Play();
         }
         
     }
@@ -275,30 +251,25 @@ public class PlayerController : MonoBehaviour
         //Level = inGameLevel +1, check Level <5 -> level +++ else ko doi
         if (inGameLevel < 4) 
         {
+            Debug.Log("inGameLevel");
             inGameLevel++;
             PlayerPrefs.SetInt(level, inGameLevel);
             PlayerPrefs.Save();
         }
-
+        GameObject[] obj = GameObject.FindGameObjectsWithTag("level");
+        for (int i = 0; i < obj.Length; i++)
+        {
+            DestroyImmediate(obj[i], true);
+        }
         OnInit();
     }
     public void replay()
     {
-        PlayerPrefs.SetInt(level, inGameLevel);
-        PlayerPrefs.Save();
-        OnInit();
-    }
-    
-
-    public void reset_obj_Value()
-    {
-        /*foreach (KeyValuePair<GameObject, bool> allactobj in current_obj_state)
+        GameObject[] obj = GameObject.FindGameObjectsWithTag("level");
+        for (int i = 0; i < obj.Length; i++)
         {
-            allactobj.Key.gameObject.SetActive(!allactobj.Value);
-        }*/
-        for (int i=0; i< brickList.Count; i++)
-        {
-            brickList[i].GetbrickObj().gameObject.SetActive(!brickList[i].GetisActive());
+            DestroyImmediate(obj[i],true);
         }
+        OnInit();
     }
 }

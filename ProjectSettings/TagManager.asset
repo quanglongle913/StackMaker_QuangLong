@@ -14,6 +14,7 @@ TagManager:
   - boxOpen
   - WinBrickBlock
   - boxClose
+  - level
   layers:
   - Default
   - TransparentFX
