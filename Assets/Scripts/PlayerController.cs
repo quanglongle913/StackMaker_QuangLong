@@ -42,11 +42,13 @@ public class PlayerController : GameMaganer
         {
             instance = this;
         }
+        Debug.Log("Awake");
     }
 
     // Start is called before the first frame update
-    void Start()
+    public override void Start()
     {
+        //Debug.Log("Start");
         inGameLevel = 0;
         
         rb = GetComponent<Rigidbody>();
@@ -70,7 +72,7 @@ public class PlayerController : GameMaganer
     public override void OnInit()
     {
         base.OnInit();
-        
+        //Debug.Log("OnInit");
         inGameLevel = PlayerPrefs.GetInt(level, 0);
         inGameBrick = PlayerPrefs.GetInt(brick, 0);
 
@@ -251,7 +253,7 @@ public class PlayerController : GameMaganer
         //Level = inGameLevel +1, check Level <5 -> level +++ else ko doi
         if (inGameLevel < 4) 
         {
-            Debug.Log("inGameLevel");
+            //Debug.Log("inGameLevel");
             inGameLevel++;
             PlayerPrefs.SetInt(level, inGameLevel);
             PlayerPrefs.Save();

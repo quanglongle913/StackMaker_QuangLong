@@ -17,13 +17,16 @@ public class GameMaganer : MonoBehaviour
 
     protected bool isReplay;
     // Start is called before the first frame update
-    void Start()
+    public virtual void Start()
     {
+        //Debug.Log("adkoad");
+  
         OnInit();
     }
     public virtual void OnInit()
     {   
-        inGameLevel = PlayerPrefs.GetInt(level, 0);
+        inGameLevel = PlayerPrefs.GetInt(level, 1);
+        Debug.Log(inGameLevel);
         if (inGameLevel == 1)
         {
             Instantiate(level1, new Vector3(0, 0, 0), Quaternion.Euler(0,-90,0));
